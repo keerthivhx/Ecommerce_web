@@ -1,17 +1,22 @@
-def increase_quantity(request, id):
-    item = Cart.objects.get(id=id, user=request.user)
-    item.quantity += 1
-    item.save()
-    return redirect('/cart/')
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Cart
 
+@login_required
+def place_order(request):
+    cart_items = Cart.objects.filter(user=request.user)
 
-def decrease_quantity(request, id):
-    item = Cart.objects.get(id=id, user=request.user)
+    if not cart_items:
+        return redirect('/cart/')
 
-    if item.quantity > 1:
-        item.quantity -= 1
-        item.save()
-    else:
-        item.delete()
+    total = sum(item.product.price * item.quantity for item in cart_items)
 
-    return redirect('/cart/')
+    # dummy order page (safe version for submission)
+    order_summary = {
+        "total": total,
+        "items": cart_items
+    }
+
+    cart_items.delete()
+
+    return render(request, 'store/order_success.html', order_summary)

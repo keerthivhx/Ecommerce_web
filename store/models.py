@@ -27,3 +27,4 @@ class Order(models.Model):
 
     def __str__(self):
         return str(self.user)
+stock = models.IntegerField(default=10)
